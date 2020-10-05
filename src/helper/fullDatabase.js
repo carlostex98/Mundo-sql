@@ -3,25 +3,8 @@ const pool = require('../database');
 async function filModel() {
 
     //ciudades();
-    //regiones();
-    //categorias();
-
-    //the group join
-
-    //companias();
-    //clientes();
-    //proveedores();
-    //productos();
-
-    //cliente_compania();
-    //proveedor_compania();
-    //producto_categoria();
-    //proveedor_ciudad();
-    //cliente_ciudad();
-    //proveedor_region();
-    cliente_region();
-
-
+    //compras_cliente();
+    cliente_compania();
 }
 
 
@@ -31,6 +14,7 @@ async function ciudades() {
         let nombre = cd[i].ciudad;
         await pool.query("insert into ciudades(nombre_ciudad) values(\'" + nombre + "\')");
     }
+    regiones();
 }
 
 async function regiones() {
@@ -39,6 +23,7 @@ async function regiones() {
         let nombre = r[i].region;
         await pool.query("insert into regiones(nombre_region) values(\'" + nombre + "\')");
     }
+    categorias();
 }
 
 
@@ -49,6 +34,7 @@ async function categorias() {
         //insert categoria
         await pool.query("insert into categorias(nombre_categoria) values(\'" + nombre + "\')");
     }
+    companias();
 }
 
 
@@ -66,6 +52,7 @@ async function companias() {
             "\'" + k[0].telefono_compania + "\'" +
             ")");
     }
+    clientes();
 }
 
 async function clientes() {
@@ -84,6 +71,7 @@ async function clientes() {
             "'" + k[0].codigo_postal + "'" +
             ")");
     }
+    proveedores();
 }
 
 async function proveedores() {
@@ -102,6 +90,7 @@ async function proveedores() {
             "'" + k[0].codigo_postal + "'" +
             ")");
     }
+    productos();
 }
 
 async function productos() {
@@ -118,6 +107,7 @@ async function productos() {
             ")");
 
     }
+    cliente_compania();
 }
 
 
@@ -139,6 +129,7 @@ async function cliente_compania() {
         }
 
     }
+    //proveedor_compania();
 }
 
 
@@ -160,6 +151,7 @@ async function proveedor_compania() {
         }
 
     }
+    producto_categoria();
 }
 
 
@@ -181,6 +173,7 @@ async function producto_categoria() {
         }
 
     }
+    proveedor_ciudad();
 }
 
 async function proveedor_ciudad() {
@@ -201,6 +194,7 @@ async function proveedor_ciudad() {
         }
 
     }
+    cliente_ciudad();
 }
 
 async function cliente_ciudad() {
@@ -221,6 +215,7 @@ async function cliente_ciudad() {
         }
 
     }
+    proveedor_region();
 }
 
 async function proveedor_region() {
@@ -241,6 +236,7 @@ async function proveedor_region() {
         }
 
     }
+    cliente_region();
 }
 
 async function cliente_region() {
@@ -259,7 +255,31 @@ async function cliente_region() {
                 await pool.query("insert into cliente_region values(" + idv[0].id_region + ", " + idx[0].id_cliente + ")");
             }
         }
+    }
+    compras_cliente();
+}
 
+async function compras_cliente(){
+    const comp = await pool.query("select producto, nombre, cantidad from datos_entrada where tipo='C'");
+    for (let i = 0; i < comp.length; i++) {
+        //console.log(i);
+        let a = await pool.query("select id_cliente from clientes where nombre ='"+comp[i].nombre+"' ");
+        let b = await pool.query("select id_producto from productos where nombre_producto ='"+comp[i].producto+"' ");
+        
+        await pool.query("insert into cliente_compra_producto values("+a[0].id_cliente+", "+b[0].id_producto+","+comp[i].cantidad+")");
+        
+    }
+    compras_proveedor();
+}
+
+async function compras_proveedor(){
+    const comp = await pool.query("select producto, nombre, cantidad from datos_entrada where tipo='P'");
+    for (let i = 0; i < comp.length; i++) {
+        let a = await pool.query("select id_proveedor from proveedores where nombre ='"+comp[i].nombre+"' ");
+        let b = await pool.query("select id_producto from productos where nombre_producto ='"+comp[i].producto+"' ");
+        
+        await pool.query("insert into proveedor_compra_producto values("+a[0].id_proveedor+", "+b[0].id_producto+","+comp[i].cantidad+")");
+        
     }
 }
 
